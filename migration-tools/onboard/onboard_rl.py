@@ -28,12 +28,12 @@ parser.add_argument(
     action="store_true",
     help='Enable VPC FlowLogs for all your VPCs for this account')
 
-parser.add_argument(
-    '-c',
-    '--cloudtrail',
-    default=False,
-    action="store_true",
-    help='Enable CloudTrail logs for the account')
+# parser.add_argument(
+#     '-c',
+#     '--cloudtrail',
+#     default=False,
+#     action="store_true",
+#     help='Enable CloudTrail logs for the account')
 
 parser.add_argument(
     '-u',
@@ -41,6 +41,7 @@ parser.add_argument(
     type=str,
     default=None,
     help='Redlock.io username')
+    
 parser.add_argument(
     '-p',
     '--password',
@@ -93,6 +94,8 @@ globalVars['username']              = args.username
 globalVars['password']              = args.password
 globalVars['customerName']          = args.customername
 globalVars['accountname']           = args.accountname
+
+SERVICE_ROLE = "PrismaCloud-Service-Role"
 
 
 if args.tenant=="app":
@@ -165,10 +168,11 @@ def main(globalVars):
     account_information = create_account_information(globalVars['accountname'])
     launch_cloudformation_stack(account_information)
     response = register_account_with_redlock(globalVars, account_information)
+
     if args.vpcflowlogs==True:
       setupvpc(globalVars)
-    if args.cloudtrail==True:
-      is_cloudtrail_enabled()
+    # if args.cloudtrail==True:
+    #   is_cloudtrail_enabled()
     return
 
 def setupvpc(globalVars):
@@ -180,7 +184,7 @@ def setupvpc(globalVars):
 def create_account_information(account_name):
     external_id = str(uuid.uuid4())
     account_id = session.client('sts').get_caller_identity().get('Account')
-    arn = "arn:aws:iam::"+ account_id + ":role/PrismaCloud-Service-Role"
+    arn = "arn:aws:iam::"+ account_id + ":role/" + SERVICE_ROLE
     account_information = {
         'name': account_name,
         'external_id': external_id,
@@ -191,7 +195,8 @@ def create_account_information(account_name):
 
 def launch_cloudformation_stack(account_information):
     cfn_client = session.client('cloudformation')
-    template_url = "https://raw.githubusercontent.com/migara/redlock-automation/master/migration-tools/onboard/rl-read-only.template"
+    # template_url = "https://raw.githubusercontent.com/migara/redlock-automation/master/migration-tools/onboard/rl-read-only.template"
+    template_url = "https://s3.amazonaws.com/redlock-public/cft/rl-read-only.template"
     logging.info("Beginning creation of IAM Service Role for AWS account: " + account_information['account_id'])
     try:
         response = cfn_client.create_stack(
@@ -200,7 +205,7 @@ def launch_cloudformation_stack(account_information):
             Parameters=[
                 {
                     'ParameterKey': 'PrismaCloudRoleName',
-                    'ParameterValue': 'PrismaCloud-Service-Role', 
+                    'ParameterValue': SERVICE_ROLE, 
                 },
                 {
                     'ParameterKey': 'ExternalID',
@@ -258,77 +263,91 @@ def register_account_with_redlock(globalVars, account_information):
     }
     logging.info("Adding account to Redlock")
     response = call_redlock_api(token, 'POST', 'cloud/aws', payload)
-    logging.info("Account: " + account_information['name'] + " has been on-boarded to Redlock.")
+
+    if (json.loads(response.headers["x-redlock-status"])[0]['i18nKey']=='duplicate_cloud_account'):
+      response = update_prisma_cloud_account(token, 'PUT', 'cloud/aws/', account_information['account_id'], payload)
+    else:
+      logging.info("Account: " + account_information['name'] + " has been on-boarded to Redlock.")
+    # print (response)
     return response
 
-def create_trail():
-    print("creating S3Bucket for CloudTrail")
-    s3Client    = session.client   ( 's3')
-    try:
-      if session.region_name == 'us-east-1':
-        response = s3Client.create_bucket(
-          ACL="private",
-          Bucket=("redlocktrails-%s" % account_id)
-        )
-      else:
-        response = s3Client.create_bucket(
-          ACL="private",
-          Bucket=("redlocktrails-%s" % account_id),
-          CreateBucketConfiguration={'LocationConstraint': session.region_name}
-        )
+def update_prisma_cloud_account(auth_token, action, endpoint, accountId, payload):
+  url = "https://%s.prismacloud.io/" % tenant + endpoint + accountId
+  headers = {'Content-Type': 'application/json', 'x-redlock-auth': auth_token}
+  payload2 = json.dumps(payload)
+  response = requests.request(action, url, headers=headers, data=payload2)
+  logging.info("Account " + payload['name'] + " exist. Role ARN updated to " + payload['roleArn'])
+  return response
+
+
+# def create_trail():
+#     print("creating S3Bucket for CloudTrail")
+#     s3Client    = session.client   ( 's3')
+#     try:
+#       if session.region_name == 'us-east-1':
+#         response = s3Client.create_bucket(
+#           ACL="private",
+#           Bucket=("redlocktrails-%s" % account_id)
+#         )
+#       else:
+#         response = s3Client.create_bucket(
+#           ACL="private",
+#           Bucket=("redlocktrails-%s" % account_id),
+#           CreateBucketConfiguration={'LocationConstraint': session.region_name}
+#         )
     
-    except ClientError as e:
-      if e.response['Error']['Code'] == 'BucketAlreadyExists' or e.response['Error']['Code'] == 'BucketAlreadyOwnedByYou' :
-        print('Bucket Already Exists... Continuing')
-      else:
-        print(e.response)
+#     except ClientError as e:
+#       if e.response['Error']['Code'] == 'BucketAlreadyExists' or e.response['Error']['Code'] == 'BucketAlreadyOwnedByYou' :
+#         print('Bucket Already Exists... Continuing')
+#       else:
+#         print(e.response)
 
-    response = s3Client.put_bucket_policy(
-      Bucket=("redlocktrails-%s" % account_id),
-      Policy=S3BucketPolicy,
-    )
+#     response = s3Client.put_bucket_policy(
+#       Bucket=("redlocktrails-%s" % account_id),
+#       Policy=S3BucketPolicy,
+#     )
 
-    print("creating CloudTrail")
-    try:   
-      response = ctClient.create_trail(
-        Name="RedlockTrail",
-        S3BucketName=("redlocktrails-%s" % account_id),
-        IsOrganizationTrail=False,
-        IsMultiRegionTrail=True,
-        IncludeGlobalServiceEvents=True
-        )
-    except ClientError as e:
-      if e.response['Error']['Code'] == 'TrailAlreadyExistsException':
-        print('Trail Already Exists... Continuing')
-      else:
-        print(e.response)
-
-
+#     print("creating CloudTrail")
+#     try:   
+#       response = ctClient.create_trail(
+#         Name="RedlockTrail",
+#         S3BucketName=("redlocktrails-%s" % account_id),
+#         IsOrganizationTrail=False,
+#         IsMultiRegionTrail=True,
+#         IncludeGlobalServiceEvents=True
+#         )
+#     except ClientError as e:
+#       if e.response['Error']['Code'] == 'TrailAlreadyExistsException':
+#         print('Trail Already Exists... Continuing')
+#       else:
+#         print(e.response)
 
 
-def is_cloudtrail_enabled():
-  ctenabled=False
-  response = ctClient.describe_trails()
-  '''
-  if len(response['trailList']) != 0:
-    for each in response['trailList']:
-      if each[u'IsMultiRegionTrail']==True:
-        multitrails.update({each['Name']: each['HomeRegion']})
-    for each in multitrails:
-        regionclient  = session.client   ( 'cloudtrail', region_name=multitrails[each])
-        selectors = regionclient.get_event_selectors(
-            TrailName=each
-            )
-        if selectors['EventSelectors'][0]['ReadWriteType'] == "All":
-          ctenabled=True
-          break
-  else:
-  '''
-  create_trail()
-  ctenabled=True
 
-  if ctenabled==False:
-    create_trail()
+
+# def is_cloudtrail_enabled():
+#   ctenabled=False
+#   response = ctClient.describe_trails()
+#   '''
+#   if len(response['trailList']) != 0:
+#     for each in response['trailList']:
+#       if each[u'IsMultiRegionTrail']==True:
+#         multitrails.update({each['Name']: each['HomeRegion']})
+#     for each in multitrails:
+#         regionclient  = session.client   ( 'cloudtrail', region_name=multitrails[each])
+#         selectors = regionclient.get_event_selectors(
+#             TrailName=each
+#             )
+#         if selectors['EventSelectors'][0]['ReadWriteType'] == "All":
+#           ctenabled=True
+#           break
+#   else:
+#   '''
+#   create_trail()
+#   ctenabled=True
+
+#   if ctenabled==False:
+#     create_trail()
 
 def create_iam():
   try:

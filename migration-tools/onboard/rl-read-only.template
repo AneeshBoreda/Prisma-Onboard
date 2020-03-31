@@ -81,6 +81,25 @@
                 }
               ]
             }
+          },
+          {
+            "PolicyName": "PrismaCloud-IAM-Remediation-Policy",
+            "PolicyDocument": {
+                "Version": "2012-10-17",
+                "Statement": [
+                    {
+                        "Action": [
+                            "iam:UpdateAccountPasswordPolicy",
+                            "ec2:ModifyImageAttribute",
+                            "rds:ModifyDBSnapshotAttribute",
+                            "s3:PutBucketAcl",
+                            "ec2:RevokeSecurityGroupIngress"
+                        ],
+                        "Resource": "*",
+                        "Effect": "Allow"
+                    }
+                ]
+            }
           }
         ],
         "RoleName": {
