@@ -13,7 +13,7 @@ import botocore
 from botocore.exceptions import ClientError
                                   
 from time import sleep
-parser = argparse.ArgumentParser(prog='Redlock Onboarding Tool')
+parser = argparse.ArgumentParser(prog='Prisma Cloud Onboarding Tool')
 parser.add_argument(
     '-a',
     '--awsprofile',
@@ -41,7 +41,7 @@ parser.add_argument(
     type=str,
     default=None,
     help='Redlock.io username')
-    
+
 parser.add_argument(
     '-p',
     '--password',
@@ -54,7 +54,7 @@ parser.add_argument(
     '--customername',
     type=str,
     default=None,
-    help='Redlock.io organization name. Please ensure you Escape any spaces by enclosing the name in quotes eg, "Redlock Account"')
+    help='Redlock.io organization name. Please ensure you Escape any spaces by enclosing the name in quotes eg, "Prisma Cloud Account"')
 
 parser.add_argument(
     '-n',
@@ -195,8 +195,8 @@ def create_account_information(account_name):
 
 def launch_cloudformation_stack(account_information):
     cfn_client = session.client('cloudformation')
-    # template_url = "https://raw.githubusercontent.com/migara/redlock-automation/master/migration-tools/onboard/rl-read-only.template"
-    template_url = "https://s3.amazonaws.com/redlock-public/cft/rl-read-only.template"
+    # template_url = "https://prisma-cloud-ps.s3-eu-west-1.amazonaws.com/prisma-cloud-read-only.template"
+    template_url = "https://prisma-cloud-ps.s3-eu-west-1.amazonaws.com/prisma-cloud-remediation.template"
     logging.info("Beginning creation of IAM Service Role for AWS account: " + account_information['account_id'])
     try:
         response = cfn_client.create_stack(
@@ -237,7 +237,7 @@ def launch_cloudformation_stack(account_information):
     return
 
 def get_auth_token(globalVars):
-    url = "https://%s.redlock.io/login" % (tenant)
+    url = "https://%s.prismacloud.io/login" % (tenant)
     headers = {'Content-Type': 'application/json'}
     payload = json.dumps(globalVars)
     response = requests.request("POST", url, headers=headers, data=payload)
@@ -245,7 +245,7 @@ def get_auth_token(globalVars):
     return token
 
 def call_redlock_api(auth_token, action, endpoint, payload):
-    url = "https://%s.redlock.io/" % tenant + endpoint
+    url = "https://%s.prismacloud.io/" % tenant + endpoint
     headers = {'Content-Type': 'application/json', 'x-redlock-auth': auth_token}
     payload = json.dumps(payload)
     response = requests.request(action, url, headers=headers, data=payload)
