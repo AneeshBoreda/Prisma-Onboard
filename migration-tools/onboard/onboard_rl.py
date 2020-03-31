@@ -180,7 +180,7 @@ def setupvpc(globalVars):
 def create_account_information(account_name):
     external_id = str(uuid.uuid4())
     account_id = session.client('sts').get_caller_identity().get('Account')
-    arn = "arn:aws:iam::"+ account_id + ":role/Redlock-Service-Role"
+    arn = "arn:aws:iam::"+ account_id + ":role/PrismaCloud-Service-Role"
     account_information = {
         'name': account_name,
         'external_id': external_id,
@@ -191,16 +191,16 @@ def create_account_information(account_name):
 
 def launch_cloudformation_stack(account_information):
     cfn_client = session.client('cloudformation')
-    template_url = "https://s3.amazonaws.com/redlock-public/cft/rl-read-only.template"
+    template_url = "https://raw.githubusercontent.com/migara/redlock-automation/master/migration-tools/onboard/rl-read-only.template"
     logging.info("Beginning creation of IAM Service Role for AWS account: " + account_information['account_id'])
     try:
         response = cfn_client.create_stack(
-            StackName='Redlock-Service-Role-Stack',
+            StackName='PrismaCloud-Service-Role-Stack',
             TemplateURL=template_url,
             Parameters=[
                 {
-                    'ParameterKey': 'RedlockRoleARN',
-                    'ParameterValue': 'Redlock-Service-Role', 
+                    'ParameterKey': 'PrismaCloudRoleName',
+                    'ParameterValue': 'PrismaCloud-Service-Role', 
                 },
                 {
                     'ParameterKey': 'ExternalID',
