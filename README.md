@@ -1,4 +1,4 @@
-Onboarding tool for Redlock.io
+Onboarding tool for Prisma Cloud
 
 This tool is an automation tool for onboarding AWS accounts onto Redlock.io.  This script has options for enabling CloudTrail and VPC FlowLogs as well.  These options are not required.
 
@@ -13,7 +13,7 @@ pip3 install argparse
 
 
 ```
-usage: Redlock Onboarding Tool [-h] [-a AWSPROFILE] [-f] [-c] [-u USERNAME]
+usage: Prisma Cloud Onboarding Tool [-h] [-a AWSPROFILE] [-f] [-c] [-u USERNAME]
                                [-p PASSWORD] [-o CUSTOMERNAME]
                                [-n ACCOUNTNAME] [-t TENANT]
 
@@ -25,15 +25,15 @@ optional arguments:
   -f, --vpcflowlogs     Enable VPC FlowLogs for all your VPCs for this account
   -c, --cloudtrail      Enable CloudTrail logs for the account
   -u USERNAME, --username USERNAME
-                        Redlock.io username
+                        Prisma Cloud username
   -p PASSWORD, --password PASSWORD
-                        Redlock.io password (any password with special characters should be escaped with single quotes)
+                        Prisma Cloud password (any password with special characters should be escaped with single quotes)
   -o CUSTOMERNAME, --customername CUSTOMERNAME
-                        Redlock.io organization name. Please ensure you Escape
+                        Prisma Cloud organization name. Please ensure you Escape
                         any spaces by enclosing the name in quotes eg,
                         "Redlock Account"
   -n ACCOUNTNAME, --accountname ACCOUNTNAME
-                        Name for account within Redlock.io
+                        Name for account within Prisma Cloud
   -t TENANT, --tenant TENANT
-                        Your Redlock.io tenant. vailable options, app or app2.
+                        Your Prisma Cloud tenant. Available options: app, app2, etc.
 ```
