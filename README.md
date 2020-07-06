@@ -1,31 +1,46 @@
-# Prisma Cloud CFNOnboarding
+# Summary
 
-Cloudformation template to onboard Prisma Cloud to AWS.
+This is a script to onboard AWS account to PrismaCloud
 
-Includes Python Lambda script to create VPC Flow logs and Cloudtrail
+# Requirements
+
+1. Python 3.5 or greater
+
+2. Pip
+
+3. Boto3
+Follow directions [here] (https://pypi.org/project/boto3/) and setup credentials for the AWS account you want to onboard.
+
+4. Requests
+`pip install requests`
 
 
-CFT PARAMETERS 
+# Environment Variables (must be set for script to work properly)
 
-PrismaRoleName       (Name you would like the role to be called within your AWS Account)
+This script doesn't take any command line arguments. Instead, credentials and information are taken through environment variables. The following are used by this script:
 
-ExternalID           (Unique ID for Cross account role access, eg, 8298nshslkj28dnhw2hn3nlks8  https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_create_for-user_externalid.html)
+PRISMA_USER_NAME: Your Prisma Cloud Access Key 
 
-PrismaUsername       (Your local Prisma account username -- not PANW SSO -- or Access Key)
+PRISMA_PASSWORD: Your Prisma Cloud Secret Key
 
-PrismaPassword       (Your local Prisma account password -- not PANW SSO -- or Secret Key)
+PRISMA_CUSTOMER_NAME: The name of your tenant within Prisma Cloud
 
-PrismaCustomerName   (The name of your tenant within Prisma)
+PRISMA_ACCOUNT_NAME: The name you want to give the onboarded account within Prisma
 
-PrismaAccountName    (Name you would like to give the account within Prisma)
+PRISMA_ACCOUNT_GROUP: Account Group you would like the account added to -- default is Default Account Group
 
-PrismaTenant         (Selectable dropdown, app, app2, app3, app.eu etc)
+PRISMA_ACCOUNT: either true or false - true will onboard account as new, false will only update the account
 
-PrismaAccountGroup   (Account Group you would like the account added to -- default is Default Account Group)
+PRISMA_VPC: either true or false - true will iterate through all your VPCs and enable flowlogs if there isn't one already available
 
-CreatePrismaAccount  (True or False, True will onboard an account as new, False will only update the account and run lambda script)
+PRISMA_CLOUDTRAIL: either true or false, currently does nothing. Prisma does not require creation of a CT any longer as we pull from the CT API and this is
+enabled by default for all AWS accounts. There is currently a known issue within the product that will provide a Yellow warning stating that we can't find a CT for the account but this can be ignored. Event ingestion will work without it.
 
-EnableCloudTrailLogs (True or False, currently does nothing. Prisma does not require creation of a CT any longer as we pull from the CT API and this is enabled by default for all AWS accounts. There is currently a known issue within the product that will provide a Yellow warning stating that we can't find a CT for the account but this can be ignored. Event ingestion will work without it.)
+CF_REGION: AWS region - e.g. us-east-1 
 
-EnableVpcFlowLogs    (True or False, True will iterate through all of your VPCs and enable flowlogs if there isn't one already available)
+PRISMA_TENANT: The url you use to access Prisma Cloud - e.g. app.prismacloud.io, app2.prismacloud.io, app.eu.prismacloud.io
+
+EXTERNAL_ID: Unique ID for Cross account role access, e.g. 82ns53h8ag24dnhw2hn3nlks8  
+[Reference](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_create_for-user_externalid.html)
+
 

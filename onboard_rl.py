@@ -40,7 +40,7 @@ globalVars['password']              = os.environ["PRISMA_PASSWORD"]
 globalVars['customerName']          = os.environ["PRISMA_CUSTOMER_NAME"]
 globalVars['accountname']           = os.environ["PRISMA_ACCOUNT_NAME"]
 globalVars['accountgroup']        = os.environ["PRISMA_ACCOUNT_GROUP"]
-globalVars['createacct']            = os.environ["PRISMA_ACCOUNT"]
+globalVars['createacct']            = os.environ["PRISMA_ACCOUNT"].lower()
 globalVars['cf-region']             = os.environ["CF_REGION"]
 globalVars['accountgroupid']	    = None
 
