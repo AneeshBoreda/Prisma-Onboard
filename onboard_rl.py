@@ -45,16 +45,8 @@ globalVars['cf-region']             = os.environ["CF_REGION"]
 globalVars['accountgroupid']	    = None
 
 ctClient    = boto3.client   ('cloudtrail', region_name=globalVars['cf-region'])
-if os.environ["PRISMA_TENANT"]=="app":
-  tenant="api"
-elif os.environ["PRISMA_TENANT"]=="app2":
-  tenant="api2"
-elif os.environ["PRISMA_TENANT"]=="app3":
-  tenant="api3"
-elif os.environ["PRISMA_TENANT"]=="app.eu":
-  tenant="api.eu"
-elif os.environ["PRISMA_TENANT"]=="app.anz":
-  tenant="api.anz"
+tenant = 'api'+os.environ['PRISMA_TENANT'][3:]
+
 enablevpc = os.environ["PRISMA_VPC"]
 enablecloudtrail = os.environ["PRISMA_CLOUDTRAIL"]
 ExternalID = os.environ["EXTERNAL_ID"]
@@ -270,7 +262,7 @@ def update_cloudformation_stack(account_information,template):
     return
 
 def get_auth_token(globalVars):
-    url = "https://%s.prismacloud.io/login" % (tenant)
+    url = "https://%s/login" % (tenant)
     headers = {'Content-Type': 'application/json'}
     payload = {
         "username": globalVars['username'],
@@ -283,7 +275,7 @@ def get_auth_token(globalVars):
     return token
 
 def call_redlock_api(auth_token, action, endpoint, payload, globalVars):
-    url = "https://%s.prismacloud.io/" % tenant + endpoint
+    url = "https://%s/" % tenant + endpoint
     headers = {'Content-Type': 'application/json', 'x-redlock-auth': auth_token}
     payload = json.dumps(payload)
     LOGGER.info(payload)
