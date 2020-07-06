@@ -1,39 +1,31 @@
-Onboarding tool for Prisma Cloud
+# Prisma Cloud CFNOnboarding
 
-This tool is an automation tool for onboarding AWS accounts onto Redlock.io.  This script has options for enabling CloudTrail and VPC FlowLogs as well.  These options are not required.
+Cloudformation template to onboard Prisma Cloud to AWS.
 
-Installation Requires Python3 and several python packages installable via pip. https://pypi.org/project/pip/
-
-```
-pip3 install boto3
-pip3 install requests
-pip3 install sty
-pip3 install argparse
-```
+Includes Python Lambda script to create VPC Flow logs and Cloudtrail
 
 
-```
-usage: Prisma Cloud Onboarding Tool [-h] [-a AWSPROFILE] [-f] [-c] [-u USERNAME]
-                               [-p PASSWORD] [-o CUSTOMERNAME]
-                               [-n ACCOUNTNAME] [-t TENANT]
+CFT PARAMETERS 
 
-optional arguments:
-  -h, --help            show this help message and exit
-  -a AWSPROFILE, --awsprofile AWSPROFILE
-                        Profile name of the AWS account to configure in your
-                        ~/.aws/credentials file
-  -f, --vpcflowlogs     Enable VPC FlowLogs for all your VPCs for this account
-  -c, --cloudtrail      Enable CloudTrail logs for the account
-  -u USERNAME, --username USERNAME
-                        Prisma Cloud username
-  -p PASSWORD, --password PASSWORD
-                        Prisma Cloud password (any password with special characters should be escaped with single quotes)
-  -o CUSTOMERNAME, --customername CUSTOMERNAME
-                        Prisma Cloud organization name. Please ensure you Escape
-                        any spaces by enclosing the name in quotes eg,
-                        "Redlock Account"
-  -n ACCOUNTNAME, --accountname ACCOUNTNAME
-                        Name for account within Prisma Cloud
-  -t TENANT, --tenant TENANT
-                        Your Prisma Cloud tenant. Available options: app, app2, etc.
-```
+PrismaRoleName       (Name you would like the role to be called within your AWS Account)
+
+ExternalID           (Unique ID for Cross account role access, eg, 8298nshslkj28dnhw2hn3nlks8  https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_create_for-user_externalid.html)
+
+PrismaUsername       (Your local Prisma account username -- not PANW SSO -- or Access Key)
+
+PrismaPassword       (Your local Prisma account password -- not PANW SSO -- or Secret Key)
+
+PrismaCustomerName   (The name of your tenant within Prisma)
+
+PrismaAccountName    (Name you would like to give the account within Prisma)
+
+PrismaTenant         (Selectable dropdown, app, app2, app3, app.eu etc)
+
+PrismaAccountGroup   (Account Group you would like the account added to -- default is Default Account Group)
+
+CreatePrismaAccount  (True or False, True will onboard an account as new, False will only update the account and run lambda script)
+
+EnableCloudTrailLogs (True or False, currently does nothing. Prisma does not require creation of a CT any longer as we pull from the CT API and this is enabled by default for all AWS accounts. There is currently a known issue within the product that will provide a Yellow warning stating that we can't find a CT for the account but this can be ignored. Event ingestion will work without it.)
+
+EnableVpcFlowLogs    (True or False, True will iterate through all of your VPCs and enable flowlogs if there isn't one already available)
+
