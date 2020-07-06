@@ -9,6 +9,7 @@ This is a script to onboard AWS account to PrismaCloud
 2. Pip
 
 3. Boto3
+
 Follow directions [here](https://pypi.org/project/boto3/) and setup credentials for the AWS account you want to onboard.
 
 4. Requests
@@ -22,7 +23,7 @@ This script doesn't take any command line arguments. Instead, credentials and in
 PRISMA_USER_NAME: Your Prisma Cloud Access Key 
 
 PRISMA_PASSWORD: Your Prisma Cloud Secret Key
-
+Re	
 PRISMA_CUSTOMER_NAME: The name of your tenant within Prisma Cloud
 
 PRISMA_ACCOUNT_NAME: The name you want to give the onboarded account within Prisma
