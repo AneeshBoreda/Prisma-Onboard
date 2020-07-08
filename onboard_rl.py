@@ -122,10 +122,10 @@ def start(globalVars):
         level=logging.INFO
     )
     account_information = create_account_information(globalVars['accountname'])
-    print('''Create stack or update stack in AWS?
-          1. Create stack
-          2. Update stack
-          3. Neither''')
+    print('''What changes should be made in AWS?
+          1. Create new role
+          2. Update existing role
+          3. Skip''')
     inp=input('').strip()
     if '1' in inp or '2' in inp:
         print('')
@@ -145,11 +145,17 @@ def start(globalVars):
                    'https://s3.amazonaws.com/redlock-public/cft/redlock-govcloud-read-and-write.template']
         template_to_use=templates[ind]
         print('Using template:',template_to_use)
-        
+        print('')
+        stackname=None
+        if 'CF_STACK_NAME' in os.environ:
+            stackname=os.environ['CF_STACK_NAME']
+        else:
+            print('CF_STACK_NAME environment variable not found, using default stack name: PrismaCloud-Service-Role-Stack\n')
+            stackname='PrismaCloud-Service-Role-Stack'
         if '1' in inp:
-            launch_cloudformation_stack(account_information,template_to_use)
+            launch_cloudformation_stack(account_information,template_to_use,stackname)
         elif '2' in inp:
-            update_cloudformation_stack(account_information,template_to_use)
+            update_cloudformation_stack(account_information,template_to_use,stackname)
           
     LOGGER.info(account_information)
     print("Starting lookup")
@@ -181,12 +187,12 @@ def create_account_information(account_name):
         'arn': arn
     }
     return account_information
-def launch_cloudformation_stack(account_information,template):
+def launch_cloudformation_stack(account_information,template,stackname):
     cfn_client = boto3.client('cloudformation')
     logging.info("Beginning creation of IAM Service Role for AWS account: " + account_information['account_id'])
     try:
         response = cfn_client.create_stack(
-            StackName='PrismaCloud-Service-Role-Stack',
+            StackName=stackname,
             TemplateURL=template,
             Parameters=[
                 {
@@ -221,12 +227,12 @@ def launch_cloudformation_stack(account_information,template):
             print('Stack Already Exists...Continuing')
 
     return
-def update_cloudformation_stack(account_information,template):
+def update_cloudformation_stack(account_information,template,stackname):
     cfn_client = boto3.client('cloudformation')
     logging.info("Beginning update of IAM Service Role for AWS account: " + account_information['account_id'])
     try:
         response = cfn_client.update_stack(
-            StackName='PrismaCloud-Service-Role-Stack',
+            StackName=stackname,
             TemplateURL=template,
             Parameters=[
                 {

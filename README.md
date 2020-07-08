@@ -41,7 +41,10 @@ CF_REGION: AWS region - e.g. us-east-1
 
 PRISMA_TENANT: The url you use to access Prisma Cloud - e.g. app.prismacloud.io, app2.prismacloud.io, app.eu.prismacloud.io
 
-EXTERNAL_ID: Unique ID for Cross account role access, e.g. 82ns53h8ag24dnhw2hn3nlks8  
+EXTERNAL_ID: Unique ID for Cross account role access, e.g. 82ns53h8ag24dnhw2hn3nlks8
 [Reference](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_create_for-user_externalid.html)
+
+CF_STACK_NAME: Optional, name of CloudFormation stack, can be set to anything. If updating already created CloudFormation stack, name must match current AWS stack name.
+
 
 
