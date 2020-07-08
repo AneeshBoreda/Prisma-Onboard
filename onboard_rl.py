@@ -47,8 +47,8 @@ globalVars['accountgroupid']	    = None
 ctClient    = boto3.client   ('cloudtrail', region_name=globalVars['cf-region'])
 tenant = 'api'+os.environ['PRISMA_TENANT'][3:]
 
-enablevpc = os.environ["PRISMA_VPC"]
-enablecloudtrail = os.environ["PRISMA_CLOUDTRAIL"]
+enablevpc = os.environ["PRISMA_VPC"].lower()
+enablecloudtrail = os.environ["PRISMA_CLOUDTRAIL"].lower()
 ExternalID = os.environ["EXTERNAL_ID"]
 rolename = globalVars['IAM-RoleName']
 ### Create IAM Role
@@ -122,7 +122,7 @@ def start(globalVars):
         level=logging.INFO
     )
     account_information = create_account_information(globalVars['accountname'])
-    print('''Create stack or update stack?
+    print('''Create stack or update stack in AWS?
           1. Create stack
           2. Update stack
           3. Neither''')
@@ -144,11 +144,11 @@ def start(globalVars):
                    'https://s3.amazonaws.com/redlock-public/cft/redlock-govcloud-read-only.template',
                    'https://s3.amazonaws.com/redlock-public/cft/redlock-govcloud-read-and-write.template']
         template_to_use=templates[ind]
-        print(template_to_use)
-        input('')
-        if '1' in input:
+        print('Using template:',template_to_use)
+        
+        if '1' in inp:
             launch_cloudformation_stack(account_information,template_to_use)
-        elif '2' in input:
+        elif '2' in inp:
             update_cloudformation_stack(account_information,template_to_use)
           
     LOGGER.info(account_information)
@@ -226,7 +226,7 @@ def update_cloudformation_stack(account_information,template):
     logging.info("Beginning update of IAM Service Role for AWS account: " + account_information['account_id'])
     try:
         response = cfn_client.update_stack(
-            StackName='PrismaCloud-Service-Role-Stack1',
+            StackName='PrismaCloud-Service-Role-Stack',
             TemplateURL=template,
             Parameters=[
                 {
